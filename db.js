@@ -1,19 +1,16 @@
 const mysql = require("mysql2");
 
-const db = mysql.createConnection({
-  host: "localhost",
-  user: "root",
-  password: "", // default empty on macOS Homebrew
-  database: "project_store"
+const db = mysql.createPool({
+  host: process.env.MYSQL_HOST,
+  user: process.env.MYSQL_USER,
+  password: process.env.MYSQL_PASSWORD,
+  database: process.env.MYSQL_DATABASE,
+  port: process.env.MYSQL_PORT,
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0
 });
 
-db.connect((err) => {
-  if (err) {
-    console.error("❌ DB connection failed:", err);
-  } else {
-    console.log("✅ MySQL connected successfully");
-  }
-});
+console.log("📦 MySQL pool initialized");
 
 module.exports = db;
-
