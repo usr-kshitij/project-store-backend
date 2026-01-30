@@ -9,8 +9,9 @@ const router = express.Router();
 router.post("/register", async (req, res) => {
   const { name, email, password } = req.body;
 
-  if (!name || !email || !password)
-    return res.status(400).json({ msg: "All fields required" });
+  if (!name || !email || !password) {
+    return res.status(400).json({ msg: "All fields are required" });
+  }
 
   const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -18,11 +19,25 @@ router.post("/register", async (req, res) => {
     "INSERT INTO users (name, email, password) VALUES (?, ?, ?)",
     [name, email, hashedPassword],
     (err) => {
-      if (err) return res.status(500).json(err);
+      if (err) {
+        // 👇 HANDLE DUPLICATE EMAIL CLEANLY
+        if (err.code === "ER_DUP_ENTRY") {
+          return res
+            .status(409)
+            .json({ msg: "Email already registered" });
+        }
+
+        console.error(err);
+        return res
+          .status(500)
+          .json({ msg: "Server error" });
+      }
+
       res.json({ msg: "User registered successfully" });
     }
   );
 });
+
 
 /* LOGIN */
 router.post("/login", (req, res) => {
